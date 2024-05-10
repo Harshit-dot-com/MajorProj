@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 from PIL import Image
 from torchvision.transforms import ToTensor
@@ -9,10 +10,13 @@ import cv2
 import math
 import tempfile
 from Nudenet import NudityDetector
-import os
 
 app = Flask(__name__)
 CORS(app)
+
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
+ALCOHOL_MODEL_PATH = os.path.join(MODEL_DIR, 'alcohol.onnx')
+WEAPONS_MODEL_PATH = os.path.join(MODEL_DIR, 'model1.onnx')
 
 def has_detection_above_threshold(image_data, alcohol_model_path, weapons_model_path, threshold=0.7):
     # Save the uploaded image temporarily
@@ -72,14 +76,12 @@ def has_detection_above_threshold(image_data, alcohol_model_path, weapons_model_
 
 @app.route('/api/detect', methods=['POST'])
 def detect():
-    alcohol_model_path = r'C:\Users\harsh\Downloads\alcohol.onnx'
-    weapons_model_path = r'C:\Users\harsh\Downloads\model1.onnx'
     threshold = 0.9
 
     image_file = request.files['image']
 
     if image_file and (image_file.filename.endswith('.jpg') or image_file.filename.endswith('.jpeg') or image_file.filename.endswith('.png')):
-        result = has_detection_above_threshold(image_file, alcohol_model_path, weapons_model_path, threshold)
+        result = has_detection_above_threshold(image_file, ALCOHOL_MODEL_PATH, WEAPONS_MODEL_PATH, threshold)
         print(result)
         return jsonify({'result': result})
     else:
